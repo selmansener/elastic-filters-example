@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
-import { Libre_Baskerville } from "next/font/google";
+import { Libre_Baskerville, Geist } from "next/font/google";
 import "./globals.css";
+import { cn } from "@/lib/utils";
 
-const fontSans = Libre_Baskerville({
-  subsets: ["latin"],
-  variable: "--font-sans",
-});
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -18,8 +16,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${fontSans.variable} antialiased`}>
+    <html lang="en" className={cn("font-sans", geist.variable)}>
+      <body className={`${geist.variable} antialiased`}>
         {children}
       </body>
     </html>
