@@ -2,7 +2,7 @@
 
 import { FormEvent, useMemo, useState, useTransition } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import type { FacetItem } from '@/types/product';
+import type { FacetItem, ProductSort } from '@/types/product';
 
 type Props = {
   brands: FacetItem[];
@@ -49,6 +49,9 @@ export default function ProductFilters({
   const [minPrice, setMinPrice] = useState(searchParams.get('minPrice') ?? '');
   const [maxPrice, setMaxPrice] = useState(searchParams.get('maxPrice') ?? '');
   const [minRating, setMinRating] = useState(searchParams.get('minRating') ?? '');
+  const [sort, setSort] = useState<ProductSort>(
+    (searchParams.get('sort') as ProductSort) ?? 'relevance'
+  );
 
   function pushParams(params: URLSearchParams) {
     const qs = params.toString();
@@ -86,8 +89,23 @@ export default function ProductFilters({
     if (minRatingValue) params.set('minRating', minRatingValue);
     else params.delete('minRating');
 
+    if (sort === 'relevance') params.delete('sort');
+    else params.set('sort', sort);
+
     params.delete('page');
     pushParams(params);
+  }
+
+  function onSortChange(value: ProductSort) {
+    setSort(value);
+
+    updateParams((params) => {
+      if (value === 'relevance') {
+        params.delete('sort');
+      } else {
+        params.set('sort', value);
+      }
+    });
   }
 
   function onCategoryChange(value: string) {
@@ -137,6 +155,8 @@ export default function ProductFilters({
     setMinPrice('');
     setMaxPrice('');
     setMinRating('');
+    setSort('relevance');
+
     startTransition(() => {
       router.push(pathname);
     });
@@ -154,6 +174,21 @@ export default function ProductFilters({
       {isPending ? <div className="text-sm opacity-70">Updating...</div> : null}
 
       <form onSubmit={onSubmitFilters} className="space-y-4">
+        <section className="space-y-2">
+          <h3 className="font-medium">Sort</h3>
+          <select
+            value={sort}
+            onChange={(e) => onSortChange(e.target.value as ProductSort)}
+            className="w-full rounded-md border px-3 py-2"
+          >
+            <option value="relevance">Relevance</option>
+            <option value="price_asc">Price: Low to high</option>
+            <option value="price_desc">Price: High to low</option>
+            <option value="rating_desc">Rating: High to low</option>
+            <option value="rating_asc">Rating: Low to high</option>
+          </select>
+        </section>
+
         <section className="space-y-2">
           <h3 className="font-medium">Search</h3>
           <input

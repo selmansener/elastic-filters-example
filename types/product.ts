@@ -18,6 +18,13 @@ export type FacetItem = {
   count: number;
 };
 
+export type ProductSort =
+  | 'relevance'
+  | 'price_asc'
+  | 'price_desc'
+  | 'rating_desc'
+  | 'rating_asc';
+
 export type ProductSearchResult = {
   items: Product[];
   total: number;

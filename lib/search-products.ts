@@ -1,9 +1,15 @@
 import type {
   AggregationsStringTermsAggregate,
   QueryDslQueryContainer,
+  SortCombinations,
 } from '@elastic/elasticsearch/lib/api/types';
 import { elastic } from './elasticsearch';
-import type { Product, ProductSearchResult, FacetItem } from '@/types/product';
+import type {
+  Product,
+  ProductSearchResult,
+  FacetItem,
+  ProductSort,
+} from '@/types/product';
 
 export type ProductSearchParams = {
   q?: string;
@@ -14,6 +20,7 @@ export type ProductSearchParams = {
   minPrice?: number;
   maxPrice?: number;
   minRating?: number;
+  sort?: ProductSort;
   page?: number;
   pageSize?: number;
 };
@@ -37,6 +44,45 @@ function parseStringTermsFacet(
       };
     })
     .filter((item): item is FacetItem => item !== null);
+}
+
+function buildSort(sort?: ProductSort, hasQuery?: boolean): SortCombinations[] | undefined {
+  const effectiveSort = sort ?? (hasQuery ? 'relevance' : 'rating_desc');
+
+  switch (effectiveSort) {
+    case 'price_asc':
+      return [
+        { price: { order: 'asc' } },
+        { rating: { order: 'desc', missing: '_last' } },
+      ];
+
+    case 'price_desc':
+      return [
+        { price: { order: 'desc' } },
+        { rating: { order: 'desc', missing: '_last' } },
+      ];
+
+    case 'rating_asc':
+      return [
+        { rating: { order: 'asc', missing: '_last' } },
+        { price: { order: 'asc' } },
+      ];
+
+    case 'rating_desc':
+      return [
+        { rating: { order: 'desc', missing: '_last' } },
+        { price: { order: 'asc' } },
+      ];
+
+    case 'relevance':
+    default:
+      return hasQuery
+        ? undefined
+        : [
+            { rating: { order: 'desc', missing: '_last' } },
+            { price: { order: 'asc' } },
+          ];
+  }
 }
 
 export async function searchProducts(
@@ -141,12 +187,7 @@ export async function searchProducts(
         },
       },
     },
-    sort: params.q
-      ? undefined
-      : [
-          { rating: { order: 'desc', missing: '_last' } },
-          { price: { order: 'asc' } },
-        ],
+    sort: buildSort(params.sort, Boolean(params.q)),
   });
 
   return {

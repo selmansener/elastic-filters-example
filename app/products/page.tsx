@@ -1,6 +1,7 @@
 import ProductFilters from './ProductFilters';
 import Pagination from './Pagination';
 import { searchProducts } from '@/lib/search-products';
+import type { ProductSort } from '@/types/product';
 
 type PageProps = {
   searchParams: Promise<{
@@ -12,6 +13,7 @@ type PageProps = {
     minPrice?: string;
     maxPrice?: string;
     minRating?: string;
+    sort?: string;
     page?: string;
     pageSize?: string;
   }>;
@@ -21,6 +23,19 @@ function toNumber(value?: string): number | undefined {
   if (!value) return undefined;
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+function toSort(value?: string): ProductSort | undefined {
+  switch (value) {
+    case 'relevance':
+    case 'price_asc':
+    case 'price_desc':
+    case 'rating_desc':
+    case 'rating_asc':
+      return value;
+    default:
+      return undefined;
+  }
 }
 
 export default async function ProductsPage({ searchParams }: PageProps) {
@@ -40,6 +55,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
   const minPrice = toNumber(params.minPrice);
   const maxPrice = toNumber(params.maxPrice);
   const minRating = toNumber(params.minRating);
+  const sort = toSort(params.sort);
   const page = toNumber(params.page) ?? 1;
   const pageSize = toNumber(params.pageSize) ?? 24;
 
@@ -52,6 +68,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
     minPrice,
     maxPrice,
     minRating,
+    sort,
     page,
     pageSize,
   });
