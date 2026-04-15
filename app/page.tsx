@@ -1,12 +1,15 @@
 import { Client } from '@elastic/elasticsearch';
 
 const elastic = new Client({
-  node: 'http://localhost:9200'
+  node: 'http://localhost:9200',
+  auth: {
+    apiKey: "OXBJVWtwMEJkSjN2RHptS0pONjY6eUo3VE9vR2FibmM3UVljQnhjYlBTdw=="
+  }
 });
 
 export default async function Home() {
   const categories = await elastic.search({
-    index: "categories"
+    index: "categories-example"
   })
 
   console.log(categories);

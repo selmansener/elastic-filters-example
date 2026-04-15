@@ -1,12 +1,21 @@
+const { headers } = require("next/headers");
+
 const ELASTIC_URL = 'http://localhost:9200';
 const PRODUCTS_INDEX = 'products-example';
 const CATEGORIES_INDEX = 'categories-example';
+const ELASTIC_USERNAME = 'elastic';
+const ELASTIC_PASSWORD = process.env.ELASTIC_PASSWORD || 'qwe123**';
+
+function elasticAuthHeader() {
+  return `Basic ${Buffer.from(`${ELASTIC_USERNAME}:${ELASTIC_PASSWORD}`).toString('base64')}`;
+}
 
 async function es(path, options = {}) {
   const res = await fetch(`${ELASTIC_URL}${path}`, {
     headers: {
       ...(options.body ? { 'Content-Type': 'application/json' } : {}),
       ...(options.headers || {}),
+      "Authorization": elasticAuthHeader(),
     },
     ...options,
   });
@@ -25,7 +34,11 @@ async function es(path, options = {}) {
 }
 
 async function fetchJson(url) {
-  const res = await fetch(url);
+  const res = await fetch(url, {
+    headers:  {
+      "Authorization": elasticAuthHeader(),
+    }
+  });
   if (!res.ok) {
     throw new Error(`Request failed ${res.status}: ${url}`);
   }
@@ -33,7 +46,10 @@ async function fetchJson(url) {
 }
 
 async function indexExists(indexName) {
-  const res = await fetch(`${ELASTIC_URL}/${indexName}`, { method: 'HEAD' });
+  const res = await fetch(`${ELASTIC_URL}/${indexName}`, { method: 'HEAD', headers: {
+    
+      "Authorization": elasticAuthHeader(),
+  } });
   return res.status === 200;
 }
 
@@ -44,13 +60,22 @@ async function deleteIndexIfExists(indexName) {
     return;
   }
 
-  await es(`/${indexName}`, { method: 'DELETE' });
+  await es(`/${indexName}`, { 
+    method: 'DELETE' ,
+    headers: {
+      "Authorization": elasticAuthHeader(),
+    }
+  });
   console.log(`Deleted index '${indexName}'`);
 }
 
 async function createCategoriesIndex() {
   await es(`/${CATEGORIES_INDEX}`, {
     method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      "Authorization": elasticAuthHeader(),
+    },
     body: JSON.stringify({
       mappings: {
         properties: {
@@ -69,6 +94,10 @@ async function createCategoriesIndex() {
 async function createProductsIndex() {
   await es(`/${PRODUCTS_INDEX}`, {
     method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      "Authorization": elasticAuthHeader(),
+    },
     body: JSON.stringify({
       mappings: {
         properties: {
@@ -198,6 +227,7 @@ async function bulkIndex(indexName, docs, getId) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-ndjson',
+      "Authorization": elasticAuthHeader(),
     },
     body,
   });
