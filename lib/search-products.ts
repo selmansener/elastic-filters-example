@@ -11,6 +11,9 @@ import type {
   ProductSort,
 } from '@/types/product';
 
+const PRODUCTS_INDEX = 'products-example';
+const CATEGORIES_INDEX = 'categories-example';
+
 export type ProductSearchParams = {
   q?: string;
   category?: string;
@@ -158,7 +161,7 @@ export async function searchProducts(
   }
 
   const response = await elastic.search<Product>({
-    index: 'products',
+    index: PRODUCTS_INDEX,
     from: (page - 1) * pageSize,
     size: pageSize,
     query: {

@@ -1,6 +1,6 @@
 const ELASTIC_URL = 'http://localhost:9200';
-const PRODUCTS_INDEX = 'products';
-const CATEGORIES_INDEX = 'categories';
+const PRODUCTS_INDEX = 'products-example';
+const CATEGORIES_INDEX = 'categories-example';
 
 async function es(path, options = {}) {
   const res = await fetch(`${ELASTIC_URL}${path}`, {
