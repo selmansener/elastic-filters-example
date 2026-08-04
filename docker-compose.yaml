@@ -1,7 +1,7 @@
 services:
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:9.3.2
-    container_name: elasticsearch
+    container_name: elasticsearch_filters
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
@@ -18,7 +18,7 @@ services:
 
   kibana:
     image: docker.elastic.co/kibana/kibana:9.3.2
-    container_name: kibana
+    container_name: kibana_filters
     depends_on:
       elasticsearch:
         condition: service_healthy
